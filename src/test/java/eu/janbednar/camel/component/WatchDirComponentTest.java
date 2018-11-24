@@ -103,21 +103,6 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
         assertMockEndpointsSatisfied();
     }
 
-    @Test
-    public void testModify() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:watchModify");
-
-        File newFile = new File(new File(testPath()), UUID.randomUUID().toString());
-        newFile.createNewFile();
-
-        for (int i = 0; i < 100; i++) {
-            newFile.setLastModified(System.currentTimeMillis() + i);
-        }
-
-        mock.expectedMessagesMatches(exchange -> exchange.getIn().getBody(FileEvent.class).getEventType() == NioEventEnum.ENTRY_MODIFY);
-        assertMockEndpointsSatisfied();
-    }
-
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
