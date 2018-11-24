@@ -2,23 +2,13 @@ package eu.janbednar.camel.component;
 
 import eu.janbednar.camel.component.body.FileEvent;
 import eu.janbednar.camel.component.constants.NioEventEnum;
-import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit4.CamelTestSupport;
-import org.apache.camel.util.FileUtil;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 public class WatchDirComponentTest extends WatchDirComponentTestBase {
 
@@ -63,13 +53,7 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
         Assert.assertTrue(newFile.createNewFile());
         Assert.assertTrue(newFile.delete());
 
-
-        mock.expectedMessageCount(3);
-        assertMockEndpointsSatisfied();
-
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, mock.getExchanges().get(0));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_MODIFY, mock.getExchanges().get(1));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_DELETE, mock.getExchanges().get(2));
+        assertCreateAndRemoveFileEvents(mock, newFile);
     }
 
     @Test
@@ -85,13 +69,7 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
         Assert.assertTrue(newFile.createNewFile());
         Assert.assertTrue(newFile.delete());
 
-
-        mock.expectedMessageCount(3);
-        assertMockEndpointsSatisfied();
-
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, mock.getExchanges().get(0));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_MODIFY, mock.getExchanges().get(1));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_DELETE, mock.getExchanges().get(2));
+        assertCreateAndRemoveFileEvents(mock, newFile);
     }
 
     @Test
@@ -107,13 +85,7 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
         Assert.assertTrue(newFile.createNewFile());
         Assert.assertTrue(newFile.delete());
 
-
-        mock.expectedMessageCount(3);
-        assertMockEndpointsSatisfied();
-
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, mock.getExchanges().get(0));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_MODIFY, mock.getExchanges().get(1));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_DELETE, mock.getExchanges().get(2));
+        assertCreateAndRemoveFileEvents(mock, newFile);
     }
 
     @Test
@@ -125,7 +97,6 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
             //Thread.sleep(1000);
             newFile.createNewFile();
         }
-        ;
 
         mock.expectedMessageCount(100);
         mock.expectedMessagesMatches(exchange -> exchange.getIn().getBody(FileEvent.class).getEventType() == NioEventEnum.ENTRY_CREATE);
