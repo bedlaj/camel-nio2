@@ -16,14 +16,19 @@ import java.util.*;
 /**
  * Represents a watchDir endpoint.
  */
-@UriEndpoint(firstVersion = "1.0-SNAPSHOT", scheme = "watchdir", title = "watchDir", syntax="watchdir:path",
+@UriEndpoint(scheme = "watchdir", title = "watchDir", syntax="watchdir:path",
              consumerClass = WatchDirConsumer.class, label = "custom")
 public class WatchDirEndpoint extends DefaultEndpoint implements MultipleConsumersSupport {
-    @UriPath @Metadata(required = "true")
+    @UriPath(description = "Path of directory to consume events from")
+    @Metadata(required = "true")
     private String path;
-    @UriParam
+
+    @UriParam(
+            description = "Coma separated list of events to watch. Allowed values are: ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE"
+    ,defaultValue = "ENTRY_CREATE,ENTRY_MODIFY,ENTRY_DELETE")
     private List<NioEventEnum> events = Arrays.asList(NioEventEnum.values());
-    @UriParam
+
+    @UriParam(description="Auto create directory if noes not exists", defaultValue = "true")
     private boolean autoCreate = true;
 
     public WatchDirEndpoint() {

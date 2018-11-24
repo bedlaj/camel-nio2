@@ -2,7 +2,6 @@ package eu.janbednar.camel.component;
 
 import eu.janbednar.camel.component.body.FileEvent;
 import eu.janbednar.camel.component.constants.NioEventEnum;
-import eu.janbednar.camel.component.util.FileUtil;
 import org.apache.camel.Exchange;
 import org.apache.camel.test.junit4.CamelTestSupport;
 import org.junit.After;
@@ -10,8 +9,7 @@ import org.junit.Assert;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Paths;
 
 public class WatchDirComponentTestBase extends CamelTestSupport {
 
