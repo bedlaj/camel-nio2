@@ -25,11 +25,11 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
         super(endpoint, processor);
         this.endpoint = endpoint;
 
-        kinds = new WatchEvent.Kind[endpoint.getEvents().size()+1];
+        kinds = new WatchEvent.Kind[endpoint.getEvents().size() + 1];
         kinds[0] = StandardWatchEventKinds.OVERFLOW; //always watch Overflow event for logging purposes
         List<NioEventEnum> events = endpoint.getEvents();
         for (int i = 0; i < events.size(); i++) {
-            kinds[i+1] = events.get(i).getKind();
+            kinds[i + 1] = events.get(i).getKind();
         }
     }
 
@@ -38,7 +38,7 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
         super.doStart();
         Path directory = Paths.get(endpoint.getPath());
         watchService = FileSystems.getDefault().newWatchService();
-        if (endpoint.isAutoCreate() && !Files.exists(directory)){
+        if (endpoint.isAutoCreate() && !Files.exists(directory)) {
             Files.createDirectories(directory);
         }
         directory.register(watchService, kinds);
@@ -51,55 +51,54 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
         try {
             watchService.close();
             log.info("WatchService stopped");
-        } catch (IOException e){
+        } catch (IOException e) {
             log.info("Cannot stop WatchService", e);
         }
         executorService.shutdownNow();
         super.doStop();
     }
 
-    class WatchDirRunnable implements Runnable{
+    class WatchDirRunnable implements Runnable {
         WatchKey watchKey = null;
 
         @Override
         public void run() {
-            while (take() && isRunAllowed() && !isStoppingOrStopped() && !isSuspendingOrSuspended()){
-                try {
-                    for (WatchEvent<?> event : watchKey.pollEvents()) {
-                        if (event.kind().equals(StandardWatchEventKinds.OVERFLOW)){
-                            log.warn("OVERFLOW occured");
-                            continue;
-                        }
+            while (take() && isRunAllowed() && !isStoppingOrStopped() && !isSuspendingOrSuspended()) {
+                for (WatchEvent<?> event : watchKey.pollEvents()) {
+                    if (event.kind().equals(StandardWatchEventKinds.OVERFLOW)) {
+                        log.warn("OVERFLOW occured");
+                        continue;
+                    }
 
-                        WatchEvent<Path> watchEventCast = (WatchEvent<Path>)event;
-                        for (int i = 0; i < event.count(); i++) { //if event.count > 1, send it multiple times
-                            Exchange exchange = endpoint.createExchange();
-                            try {
-                                //log.info(event.kind() + " Event Happened on " + event.context());
-                                exchange.getIn().setBody(new FileEvent(watchEventCast));
-                                getProcessor().process(exchange);
-                            } catch (Throwable e){
-                                exchange.setException(e);
-                            } finally {
-                                // log exception if an exception occurred and was not handled
-                                if (exchange.getException() != null) {
-                                    getExceptionHandler().handleException("Error processing exchange", exchange, exchange.getException());
-                                }
+                    WatchEvent<Path> watchEventCast = (WatchEvent<Path>) event;
+                    for (int i = 0; i < event.count(); i++) { //if event.count > 1, send it multiple times
+                        Exchange exchange = endpoint.createExchange();
+                        try {
+                            //log.info(event.kind() + " Event Happened on " + event.context());
+                            exchange.getIn().setBody(new FileEvent(watchEventCast));
+                            getProcessor().process(exchange);
+                        } catch (Throwable e) {
+                            exchange.setException(e);
+                        } finally {
+                            // log exception if an exception occurred and was not handled
+                            if (exchange.getException() != null) {
+                                getExceptionHandler().handleException("Error processing exchange", exchange, exchange.getException());
                             }
                         }
                     }
-                } finally {
-                    watchKey.reset();
                 }
             }
         }
 
-        private boolean take(){
+        private boolean take() {
+            if (watchKey != null && !watchKey.reset()) {
+                return false;
+            }
             try {
                 watchKey = watchService.take();
                 return true;
             } catch (InterruptedException | ClosedWatchServiceException e) {
-                log.info("WatchDirRunnable stopping because "+ e.getClass().getSimpleName()+": "+e.getMessage());
+                log.info("WatchDirRunnable stopping because " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 return false;
             }
         }
