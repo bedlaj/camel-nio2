@@ -13,11 +13,12 @@ import java.nio.file.Paths;
 
 public class WatchDirComponentTestBase extends CamelTestSupport {
 
-    private static final String TEST_PATH = System.getProperty("java.io.tmpdir");
+    private static final String TEST_PATH = new File("src/test/resources/testDir/").getAbsolutePath();
 
     @Override
     protected void doPreSetup() throws Exception {
         super.doPostSetup();
+        new File(testPath()).mkdirs();
         cleanTestDir(new File(testPath()));
     }
 

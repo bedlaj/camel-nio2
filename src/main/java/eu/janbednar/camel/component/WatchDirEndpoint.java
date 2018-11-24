@@ -25,7 +25,8 @@ public class WatchDirEndpoint extends DefaultEndpoint implements MultipleConsume
 
     @UriParam(
             description = "Coma separated list of events to watch. Allowed values are: ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE"
-    ,defaultValue = "ENTRY_CREATE,ENTRY_MODIFY,ENTRY_DELETE")
+            ,defaultValue = "ENTRY_CREATE,ENTRY_MODIFY,ENTRY_DELETE"
+    )
     private List<NioEventEnum> events = Arrays.asList(NioEventEnum.values());
 
     @UriParam(description="Auto create directory if noes not exists", defaultValue = "true")
