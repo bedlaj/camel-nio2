@@ -114,12 +114,6 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
             newFile.setLastModified(System.currentTimeMillis() + i);
         }
 
-        if (isWindows()){
-            mock.expectedMessageCount(100);
-        } else {
-            mock.setMinimumExpectedMessageCount(1); // Linux does not emmit event for every modification
-        }
-
         mock.expectedMessagesMatches(exchange -> exchange.getIn().getBody(FileEvent.class).getEventType() == NioEventEnum.ENTRY_MODIFY);
         assertMockEndpointsSatisfied();
     }

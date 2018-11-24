@@ -92,6 +92,7 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
 
         private boolean take() {
             if (watchKey != null && !watchKey.reset()) {
+                log.info("WatchDirRunnable stopping, because watchKey is in invalid state");
                 return false;
             }
             try {
