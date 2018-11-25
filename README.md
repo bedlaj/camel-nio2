@@ -24,7 +24,7 @@ Add dependency to component. Always use the same component version as is your `c
 <dependency>
     <groupId>com.github.bedlaj</groupId>
     <artifactId>camel-nio2</artifactId>
-    <version>2.22.1-SNAPSHOT</version>
+    <version>2.22.2</version>
 </dependency>
 ```
 
