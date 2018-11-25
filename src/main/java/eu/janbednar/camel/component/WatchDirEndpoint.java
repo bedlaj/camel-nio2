@@ -29,7 +29,7 @@ public class WatchDirEndpoint extends DefaultEndpoint implements MultipleConsume
     )
     private List<NioEventEnum> events = Arrays.asList(NioEventEnum.values());
 
-    @UriParam(description="Auto create directory if noes not exists", defaultValue = "true")
+    @UriParam(description="Auto create directory if does not exists", defaultValue = "true")
     private boolean autoCreate = true;
 
     public WatchDirEndpoint() {
