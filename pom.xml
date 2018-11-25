@@ -13,7 +13,17 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <testcase.excludedGroups>eu.janbednar.camel.component.nio2.category.LongRunningTests</testcase.excludedGroups>
   </properties>
+
+  <profiles>
+    <profile>
+      <id>AllTests</id>
+      <properties>
+        <testcase.excludedGroups/>
+      </properties>
+    </profile>
+  </profiles>
 
   <dependencyManagement>
     <dependencies>
@@ -76,7 +86,14 @@
     <defaultGoal>install</defaultGoal>
 
     <plugins>
-      
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludedGroups>${testcase.excludedGroups}</excludedGroups>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
