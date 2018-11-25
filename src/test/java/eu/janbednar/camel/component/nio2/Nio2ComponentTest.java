@@ -1,7 +1,7 @@
-package eu.janbednar.camel.component;
+package eu.janbednar.camel.component.nio2;
 
-import eu.janbednar.camel.component.body.FileEvent;
-import eu.janbednar.camel.component.constants.NioEventEnum;
+import eu.janbednar.camel.component.nio2.body.FileEvent;
+import eu.janbednar.camel.component.nio2.constants.Nio2EventEnum;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Assert;
@@ -10,7 +10,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.UUID;
 
-public class WatchDirComponentTest extends WatchDirComponentTestBase {
+public class Nio2ComponentTest extends Nio2ComponentTestBase {
 
     @Test
     public void testCreateFile() throws Exception {
@@ -40,9 +40,9 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
         watchDelete.expectedMessageCount(0);
         watchDelete.assertIsSatisfied();
 
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, watchAll.getExchanges().get(0));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, watchCreate.getExchanges().get(0));
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, watchDeleteOrCreate.getExchanges().get(0));
+        assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(0));
+        assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchCreate.getExchanges().get(0));
+        assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchDeleteOrCreate.getExchanges().get(0));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
         }
 
         mock.expectedMessageCount(100);
-        mock.expectedMessagesMatches(exchange -> exchange.getIn().getBody(FileEvent.class).getEventType() == NioEventEnum.ENTRY_CREATE);
+        mock.expectedMessagesMatches(exchange -> exchange.getIn().getBody(FileEvent.class).getEventType() == Nio2EventEnum.ENTRY_CREATE);
         assertMockEndpointsSatisfied();
     }
 
@@ -107,20 +107,20 @@ public class WatchDirComponentTest extends WatchDirComponentTestBase {
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("watchdir://"+testPath())
+                from("nio2://"+testPath())
                         .routeId("watchAll")
                         .to("mock:watchAll");
 
-                from("watchdir://"+testPath()+"?events=ENTRY_CREATE")
+                from("nio2://"+testPath()+"?events=ENTRY_CREATE")
                         .to("mock:watchCreate");
 
-                from("watchdir://"+testPath()+"?events=ENTRY_MODIFY")
+                from("nio2://"+testPath()+"?events=ENTRY_MODIFY")
                         .to("mock:watchModify");
 
-                from("watchdir://"+testPath()+"?events=ENTRY_DELETE")
+                from("nio2://"+testPath()+"?events=ENTRY_DELETE")
                         .to("mock:watchDelete");
 
-                from("watchdir://"+testPath()+"?events=ENTRY_DELETE,ENTRY_CREATE")
+                from("nio2://"+testPath()+"?events=ENTRY_DELETE,ENTRY_CREATE")
                         .to("mock:watchDeleteOrCreate");
             }
         };
