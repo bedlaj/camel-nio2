@@ -1,7 +1,7 @@
-package eu.janbednar.camel.component;
+package eu.janbednar.camel.component.nio2;
 
-import eu.janbednar.camel.component.body.FileEvent;
-import eu.janbednar.camel.component.constants.NioEventEnum;
+import eu.janbednar.camel.component.nio2.body.FileEvent;
+import eu.janbednar.camel.component.nio2.constants.Nio2EventEnum;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.Suspendable;
@@ -13,21 +13,21 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * The watchDir consumer.
+ * The nio2 consumer.
  */
-public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
-    private final WatchDirEndpoint endpoint;
+public class Nio2Consumer extends DefaultConsumer implements Suspendable {
+    private final Nio2Endpoint endpoint;
     WatchService watchService;
     ExecutorService executorService;
     WatchEvent.Kind[] kinds;
 
-    public WatchDirConsumer(WatchDirEndpoint endpoint, Processor processor) throws IOException {
+    public Nio2Consumer(Nio2Endpoint endpoint, Processor processor) {
         super(endpoint, processor);
         this.endpoint = endpoint;
 
         kinds = new WatchEvent.Kind[endpoint.getEvents().size() + 1];
         kinds[0] = StandardWatchEventKinds.OVERFLOW; //always watch Overflow event for logging purposes
-        List<NioEventEnum> events = endpoint.getEvents();
+        List<Nio2EventEnum> events = endpoint.getEvents();
         for (int i = 0; i < events.size(); i++) {
             kinds[i + 1] = events.get(i).getKind();
         }
@@ -43,7 +43,7 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
         }
         directory.register(watchService, kinds);
         executorService = endpoint.getCamelContext().getExecutorServiceManager().newSingleThreadExecutor(this, endpoint.getEndpointUri());
-        executorService.submit(new WatchDirRunnable());
+        executorService.submit(new WatchServiceRunnable());
     }
 
     @Override
@@ -58,7 +58,7 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
         super.doStop();
     }
 
-    class WatchDirRunnable implements Runnable {
+    class WatchServiceRunnable implements Runnable {
         WatchKey watchKey = null;
 
         @Override
@@ -66,11 +66,11 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
             while (take() && isRunAllowed() && !isStoppingOrStopped() && !isSuspendingOrSuspended()) {
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     if (event.kind().equals(StandardWatchEventKinds.OVERFLOW)) {
-                        log.warn("OVERFLOW occured");
+                        log.warn("OVERFLOW occurred");
                         continue;
                     }
 
-                    WatchEvent<Path> watchEventCast = (WatchEvent<Path>) event;
+                    WatchEvent<Path> watchEventCast = cast(event);
                     for (int i = 0; i < event.count(); i++) { //if event.count > 1, send it multiple times
                         Exchange exchange = endpoint.createExchange();
                         try {
@@ -101,6 +101,15 @@ public class WatchDirConsumer extends DefaultConsumer implements Suspendable {
             } catch (InterruptedException | ClosedWatchServiceException e) {
                 log.info("WatchDirRunnable stopping because " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 return false;
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private WatchEvent<Path> cast(WatchEvent<?> event){
+            if (event != null && event.kind().type() == Path.class){
+                return (WatchEvent<Path>) event;
+            } else {
+                throw new ClassCastException("Cannot cast "+event+" to WatchEvent<Path>");
             }
         }
     }
