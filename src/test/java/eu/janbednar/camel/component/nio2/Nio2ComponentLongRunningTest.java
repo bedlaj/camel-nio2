@@ -1,6 +1,6 @@
-package eu.janbednar.camel.component;
+package eu.janbednar.camel.component.nio2;
 
-import eu.janbednar.camel.component.constants.NioEventEnum;
+import eu.janbednar.camel.component.nio2.constants.Nio2EventEnum;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
@@ -13,7 +13,7 @@ import java.io.File;
 import java.util.UUID;
 
 @Ignore
-public class WatchDirComponentLongRunningTest extends WatchDirComponentTestBase {
+public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
     private Counter counterCreate = new Counter();
     private Counter counterDelete = new Counter();
 
@@ -30,7 +30,7 @@ public class WatchDirComponentLongRunningTest extends WatchDirComponentTestBase 
             }
             System.out.println(newFile.toString());
             Thread.sleep(1000);
-            assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
+            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
             System.out.println(i+": OK");
             i++;
         }
@@ -49,7 +49,7 @@ public class WatchDirComponentLongRunningTest extends WatchDirComponentTestBase 
             }
             System.out.println(newFile.toString());
             Thread.sleep(1000);
-            assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
+            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
             System.out.println(i+": OK");
             i++;
         }
@@ -88,7 +88,7 @@ public class WatchDirComponentLongRunningTest extends WatchDirComponentTestBase 
             }
             System.out.println(newFile.toString());
             Thread.sleep(600000);
-            assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
+            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
             System.out.println(i+": OK");
             i++;
         }
@@ -113,14 +113,14 @@ public class WatchDirComponentLongRunningTest extends WatchDirComponentTestBase 
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("watchdir://"+testPath()+"?events=ENTRY_CREATE")
+                from("nio2://"+testPath()+"?events=ENTRY_CREATE")
                         .routeId("watchCreate")
                         .to("mock:watchCreate");
 
-                from("watchdir://"+testPath()+"?events=ENTRY_CREATE")
+                from("nio2://"+testPath()+"?events=ENTRY_CREATE")
                         .process(counterCreate);
 
-                from("watchdir://"+testPath()+"?events=ENTRY_DELETE")
+                from("nio2://"+testPath()+"?events=ENTRY_DELETE")
                         .process(counterDelete);
             }
         };

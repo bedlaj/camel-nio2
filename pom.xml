@@ -4,11 +4,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>eu.janbednar.camel.component</groupId>
-  <artifactId>watchDir</artifactId>
+  <artifactId>nio2</artifactId>
   <packaging>jar</packaging>
   <version>2.22.1</version>
 
-  <name>Camel watchDir Component</name>
+  <name>Camel NIO.2 Component</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -127,8 +127,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>eu.janbednar.camel.component.watchDir</Bundle-SymbolicName>
-            <Export-Service>org.apache.camel.spi.ComponentResolver;component=watchdir</Export-Service>
+            <Bundle-SymbolicName>eu.janbednar.camel.component.nio2</Bundle-SymbolicName>
+            <Export-Service>org.apache.camel.spi.ComponentResolver;component=nio2</Export-Service>
           </instructions>
         </configuration>
       </plugin>
