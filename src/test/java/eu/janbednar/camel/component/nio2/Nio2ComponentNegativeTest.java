@@ -1,19 +1,13 @@
-package eu.janbednar.camel.component;
+package eu.janbednar.camel.component.nio2;
 
-import eu.janbednar.camel.component.body.FileEvent;
-import eu.janbednar.camel.component.constants.NioEventEnum;
-import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
-import java.util.UUID;
 
-public class WatchDirComponentNegativeTest extends WatchDirComponentTestBase {
+public class Nio2ComponentNegativeTest extends Nio2ComponentTestBase {
 
     @Test
     public void testNonExistentDirectory() throws Exception{
@@ -22,8 +16,8 @@ public class WatchDirComponentNegativeTest extends WatchDirComponentTestBase {
         try {
             context.addRoutes(new RouteBuilder() {
                 @Override
-                public void configure() throws Exception {
-                    from("watchdir://"+nonExistentDirectory+"?autoCreate=false")
+                public void configure() {
+                    from("nio2://"+nonExistentDirectory+"?autoCreate=false")
                             .to("mock:watchAll");
                 }
             });
@@ -36,8 +30,8 @@ public class WatchDirComponentNegativeTest extends WatchDirComponentTestBase {
 
         context.addRoutes(new RouteBuilder() {
             @Override
-            public void configure() throws Exception {
-                from("watchdir://"+nonExistentDirectory+"?autoCreate=true")
+            public void configure() {
+                from("nio2://"+nonExistentDirectory+"?autoCreate=true")
                         .to("mock:watchAll");
             }
         });
