@@ -1,18 +1,19 @@
 package eu.janbednar.camel.component.nio2;
 
+import eu.janbednar.camel.component.nio2.category.LongRunningTests;
 import eu.janbednar.camel.component.nio2.constants.Nio2EventEnum;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.io.File;
 import java.util.UUID;
 
-@Ignore
+@Category(LongRunningTests.class)
 public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
     private Counter counterCreate = new Counter();
     private Counter counterDelete = new Counter();
@@ -99,7 +100,7 @@ public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
         @Override
         public void process(Exchange exchange) throws Exception {
             count++;
-            System.out.println(exchange.getIn().getBody());
+            //System.out.println(exchange.getIn().getBody());
         }
 
         public Long getCount() {
