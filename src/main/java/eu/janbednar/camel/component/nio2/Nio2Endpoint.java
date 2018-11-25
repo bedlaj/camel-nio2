@@ -1,6 +1,6 @@
-package eu.janbednar.camel.component;
+package eu.janbednar.camel.component.nio2;
 
-import eu.janbednar.camel.component.constants.NioEventEnum;
+import eu.janbednar.camel.component.nio2.constants.Nio2EventEnum;
 import org.apache.camel.Consumer;
 import org.apache.camel.MultipleConsumersSupport;
 import org.apache.camel.Processor;
@@ -14,11 +14,11 @@ import org.apache.camel.spi.UriPath;
 import java.util.*;
 
 /**
- * Represents a watchDir endpoint.
+ * Represents a nio2 endpoint.
  */
-@UriEndpoint(scheme = "watchdir", title = "watchDir", syntax="watchdir:path",
-             consumerClass = WatchDirConsumer.class, label = "custom")
-public class WatchDirEndpoint extends DefaultEndpoint implements MultipleConsumersSupport {
+@UriEndpoint(scheme = "nio2", title = "nio2", syntax="nio2:path",
+             consumerClass = Nio2Consumer.class, label = "custom")
+public class Nio2Endpoint extends DefaultEndpoint implements MultipleConsumersSupport {
     @UriPath(description = "Path of directory to consume events from")
     @Metadata(required = "true")
     private String path;
@@ -27,24 +27,24 @@ public class WatchDirEndpoint extends DefaultEndpoint implements MultipleConsume
             description = "Coma separated list of events to watch. Allowed values are: ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE"
             ,defaultValue = "ENTRY_CREATE,ENTRY_MODIFY,ENTRY_DELETE"
     )
-    private List<NioEventEnum> events = Arrays.asList(NioEventEnum.values());
+    private List<Nio2EventEnum> events = Arrays.asList(Nio2EventEnum.values());
 
     @UriParam(description="Auto create directory if does not exists", defaultValue = "true")
     private boolean autoCreate = true;
 
-    public WatchDirEndpoint() {
+    public Nio2Endpoint() {
     }
 
-    public WatchDirEndpoint(String uri, WatchDirComponent component) {
+    public Nio2Endpoint(String uri, Nio2Component component) {
         super(uri, component);
     }
 
-    public WatchDirEndpoint(String uri,String remaining, WatchDirComponent component) {
+    public Nio2Endpoint(String uri, String remaining, Nio2Component component) {
         super(uri, component);
         setPath(remaining);
     }
 
-    public WatchDirEndpoint(String endpointUri) {
+    public Nio2Endpoint(String endpointUri) {
         super(endpointUri);
     }
 
@@ -53,7 +53,7 @@ public class WatchDirEndpoint extends DefaultEndpoint implements MultipleConsume
     }
 
     public Consumer createConsumer(Processor processor) throws Exception {
-        return new WatchDirConsumer(this, processor);
+        return new Nio2Consumer(this, processor);
     }
 
     public boolean isSingleton() {
@@ -75,21 +75,21 @@ public class WatchDirEndpoint extends DefaultEndpoint implements MultipleConsume
      * Some description of this option, and what it does
      */
     @SuppressWarnings("unused") //called via reflection
-    public void setEvents(List<NioEventEnum> events) {
+    public void setEvents(List<Nio2EventEnum> events) {
         this.events = events;
     }
 
     @SuppressWarnings("unused") //called via reflection
     public void setEvents(String commaSeparatedEvents) {
         String[] stringArray = commaSeparatedEvents.split(",");
-        Set<NioEventEnum> eventsSet = new HashSet<>();
+        Set<Nio2EventEnum> eventsSet = new HashSet<>();
         for (String event: stringArray) {
-            eventsSet.add(NioEventEnum.valueOf(event.trim()));
+            eventsSet.add(Nio2EventEnum.valueOf(event.trim()));
         }
         events = new ArrayList<>(eventsSet);
     }
 
-    List<NioEventEnum> getEvents() {
+    List<Nio2EventEnum> getEvents() {
         return events;
     }
 
