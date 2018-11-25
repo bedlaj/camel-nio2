@@ -30,7 +30,7 @@ Add dependency to component. Always use the same component version as is your `c
 
 ### URI format
 ```java
-watchdir:path[?autocreate=false][&events=ENTRY_CREATE,ENTRY_MODIFY,ENTRY_DELETE]
+watchdir:path[?autoCreate=false][&events=ENTRY_CREATE,ENTRY_MODIFY,ENTRY_DELETE]
 ```
 
 ### Endpoint options
