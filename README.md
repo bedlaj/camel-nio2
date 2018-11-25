@@ -48,4 +48,4 @@ from("nio2:/tmp/inputPath?events=ENTRY_CREATE,ENTRY_DELETE")
         log.info(event.getEventType()+" happened with path "+event.getEventPath());
     });
 ```
-Other examples can be found in [JUnit tests](https://github.com/bedlaj/camel-nio2/tree/master/src/test/java/eu/janbednar/camel/component)
+Other examples can be found in [JUnit tests](https://github.com/bedlaj/camel-nio2/tree/master/src/test/java/eu/janbednar/camel/component/nio2)
