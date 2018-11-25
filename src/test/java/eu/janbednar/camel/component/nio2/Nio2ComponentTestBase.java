@@ -1,7 +1,7 @@
-package eu.janbednar.camel.component;
+package eu.janbednar.camel.component.nio2;
 
-import eu.janbednar.camel.component.body.FileEvent;
-import eu.janbednar.camel.component.constants.NioEventEnum;
+import eu.janbednar.camel.component.nio2.body.FileEvent;
+import eu.janbednar.camel.component.nio2.constants.Nio2EventEnum;
 import org.apache.camel.Exchange;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-public class WatchDirComponentTestBase extends CamelTestSupport {
+public class Nio2ComponentTestBase extends CamelTestSupport {
 
     private static final String TEST_PATH = new File("src/test/resources/testDir/").getAbsolutePath();
 
@@ -55,7 +55,7 @@ public class WatchDirComponentTestBase extends CamelTestSupport {
     }
 
 
-    static void assertFileEvent(String expectedFileName, NioEventEnum expectedEventType, Exchange exchange){
+    static void assertFileEvent(String expectedFileName, Nio2EventEnum expectedEventType, Exchange exchange){
         Assert.assertEquals(expectedFileName, exchange.getIn().getBody(FileEvent.class).getEventPath().getFileName().toString());
         Assert.assertEquals(expectedEventType, exchange.getIn().getBody(FileEvent.class).getEventType());
     }
@@ -70,13 +70,13 @@ public class WatchDirComponentTestBase extends CamelTestSupport {
         mock.expectedMessageCount(isWindows() ? 3 : 2);
         mock.assertIsSatisfied();
 
-        assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_CREATE, mock.getExchanges().get(0));
+        assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, mock.getExchanges().get(0));
 
         if (isWindows()){
-            assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_MODIFY, mock.getExchanges().get(1));
-            assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_DELETE, mock.getExchanges().get(2));
+            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_MODIFY, mock.getExchanges().get(1));
+            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_DELETE, mock.getExchanges().get(2));
         } else {
-            assertFileEvent(newFile.getName(), NioEventEnum.ENTRY_DELETE, mock.getExchanges().get(1));
+            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_DELETE, mock.getExchanges().get(1));
         }
     }
 }
