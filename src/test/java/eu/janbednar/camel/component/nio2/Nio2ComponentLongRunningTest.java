@@ -30,7 +30,6 @@ public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
             if (!newFile.createNewFile()){
                 throw new IllegalStateException("Cannot create file "+newFile.toString());
             }
-            System.out.println(newFile.toString());
             Thread.sleep(1000);
             assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
             i++;
@@ -48,11 +47,14 @@ public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
             if (newFile.createNewFile()){
                 created++;
             }
-
-            if (newFile.delete()){
-                deleted++;
-            };
         }
+
+        for (File file: new File(testPath()).listFiles()) {
+            if (file.delete()){
+                deleted++;
+            }
+        }
+
 
         Thread.sleep(10000);
         Assert.assertEquals(created, counterCreate.getCount());
@@ -73,20 +75,18 @@ public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
         }
     }
 
-
-
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             public void configure() {
-                from("nio2://"+testPath()+"?events=ENTRY_CREATE")
+                from("nio2://"+testPath()+"?events=ENTRY_CREATE&concurrentConsumers=10")
                         .routeId("watchCreate")
                         .to("mock:watchCreate");
 
-                from("nio2://"+testPath()+"?events=ENTRY_CREATE")
+                from("nio2://"+testPath()+"?events=ENTRY_CREATE&concurrentConsumers=10")
                         .process(counterCreate);
 
-                from("nio2://"+testPath()+"?events=ENTRY_DELETE")
+                from("nio2://"+testPath()+"?events=ENTRY_DELETE&concurrentConsumers=10")
                         .process(counterDelete);
             }
         };
