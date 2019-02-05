@@ -4,26 +4,27 @@ import eu.janbednar.camel.component.nio2.body.FileEvent;
 import eu.janbednar.camel.component.nio2.constants.Nio2EventEnum;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.apache.camel.Suspendable;
 import org.apache.camel.impl.DefaultConsumer;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The nio2 consumer.
  */
-public class Nio2Consumer extends DefaultConsumer implements Suspendable {
-    private final Nio2Endpoint endpoint;
+public class Nio2Consumer extends DefaultConsumer {
     WatchService watchService;
-    ExecutorService executorService;
+    ExecutorService watchDirExecutorService;
+    ExecutorService pollExecutorService;
     WatchEvent.Kind[] kinds;
+    ArrayBlockingQueue<WatchEvent<?>> eventQueue = new ArrayBlockingQueue<>(1000,true);
 
     public Nio2Consumer(Nio2Endpoint endpoint, Processor processor) {
         super(endpoint, processor);
-        this.endpoint = endpoint;
 
         kinds = new WatchEvent.Kind[endpoint.getEvents().size() + 1];
         kinds[0] = StandardWatchEventKinds.OVERFLOW; //always watch Overflow event for logging purposes
@@ -36,14 +37,20 @@ public class Nio2Consumer extends DefaultConsumer implements Suspendable {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-        Path directory = Paths.get(endpoint.getPath());
-        watchService = FileSystems.getDefault().newWatchService();
-        if (endpoint.isAutoCreate() && !Files.exists(directory)) {
+        Path directory = Paths.get(getEndpoint().getPath());
+        watchService = directory.getFileSystem().newWatchService();
+        if (getEndpoint().isAutoCreate() && !Files.exists(directory)) {
             Files.createDirectories(directory);
         }
         directory.register(watchService, kinds);
-        executorService = endpoint.getCamelContext().getExecutorServiceManager().newSingleThreadExecutor(this, endpoint.getEndpointUri());
-        executorService.submit(new WatchServiceRunnable());
+        watchDirExecutorService = getEndpoint().getCamelContext().getExecutorServiceManager()
+                .newSingleThreadExecutor(this, "Nio2WatchService");
+        watchDirExecutorService.submit(new WatchServiceRunnable());
+
+        pollExecutorService = getEndpoint().getCamelContext().getExecutorServiceManager().newFixedThreadPool(this, "Nio2Poll", getEndpoint().getConcurrentConsumers());
+        for (int i = 0; i < getEndpoint().getConcurrentConsumers(); i++) {
+            pollExecutorService.submit(new PollRunnable());
+        }
     }
 
     @Override
@@ -54,9 +61,49 @@ public class Nio2Consumer extends DefaultConsumer implements Suspendable {
         } catch (IOException e) {
             log.info("Cannot stop WatchService", e);
         }
-        executorService.shutdownNow();
+        watchDirExecutorService.shutdownNow();
+        pollExecutorService.shutdownNow();
+
         super.doStop();
     }
+
+    class PollRunnable implements Runnable{
+        @Override
+        public void run() {
+            while (isRunAllowed() && !isStoppingOrStopped() && !isSuspendingOrSuspended()) {
+                WatchEvent<?> event = null;
+                try {
+                    event = eventQueue.poll(500, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
+                if (event != null){
+                    WatchEvent<Path> watchEventCast = cast(event);
+                    for (int i = 0; i < event.count(); i++) { //if event.count > 1, send it multiple times
+                        Exchange exchange = getEndpoint().createExchange();
+                        exchange.getIn().setBody(new FileEvent(watchEventCast));
+                        try {
+                            getProcessor().process(exchange);
+                        } catch (Exception e) {
+                            getExceptionHandler().handleException(e);
+                        }
+                    }
+                }
+
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private WatchEvent<Path> cast(WatchEvent<?> event){
+            if (event != null && event.kind().type() == Path.class){
+                return (WatchEvent<Path>) event;
+            } else {
+                throw new ClassCastException("Cannot cast "+event+" to WatchEvent<Path>");
+            }
+        }
+    }
+
 
     class WatchServiceRunnable implements Runnable {
         WatchKey watchKey = null;
@@ -69,23 +116,7 @@ public class Nio2Consumer extends DefaultConsumer implements Suspendable {
                         log.warn("OVERFLOW occurred");
                         continue;
                     }
-
-                    WatchEvent<Path> watchEventCast = cast(event);
-                    for (int i = 0; i < event.count(); i++) { //if event.count > 1, send it multiple times
-                        Exchange exchange = endpoint.createExchange();
-                        try {
-                            //log.info(event.kind() + " Event Happened on " + event.context());
-                            exchange.getIn().setBody(new FileEvent(watchEventCast));
-                            getProcessor().process(exchange);
-                        } catch (Throwable e) {
-                            exchange.setException(e);
-                        } finally {
-                            // log exception if an exception occurred and was not handled
-                            if (exchange.getException() != null) {
-                                getExceptionHandler().handleException("Error processing exchange", exchange, exchange.getException());
-                            }
-                        }
-                    }
+                    eventQueue.offer(event);
                 }
             }
         }
@@ -98,19 +129,15 @@ public class Nio2Consumer extends DefaultConsumer implements Suspendable {
             try {
                 watchKey = watchService.take();
                 return true;
-            } catch (InterruptedException | ClosedWatchServiceException e) {
+            } catch (ClosedWatchServiceException | InterruptedException e) {
                 log.info("WatchDirRunnable stopping because " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 return false;
             }
         }
+    }
 
-        @SuppressWarnings("unchecked")
-        private WatchEvent<Path> cast(WatchEvent<?> event){
-            if (event != null && event.kind().type() == Path.class){
-                return (WatchEvent<Path>) event;
-            } else {
-                throw new ClassCastException("Cannot cast "+event+" to WatchEvent<Path>");
-            }
-        }
+    @Override
+    public Nio2Endpoint getEndpoint() {
+        return (Nio2Endpoint) super.getEndpoint();
     }
 }

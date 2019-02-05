@@ -12,6 +12,7 @@ import org.junit.experimental.categories.Category;
 
 import java.io.File;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Category(LongRunningTests.class)
 public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
@@ -19,10 +20,10 @@ public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
     private Counter counterDelete = new Counter();
 
     @Test
-    public void testCreateFileEveryMinute() throws Exception {
+    public void testCreateFileEverySecondForMinute() throws Exception {
         MockEndpoint watchAll = getMockEndpoint("mock:watchCreate");
 
-        Long end = System.currentTimeMillis() + 60*60*1000;
+        Long end = System.currentTimeMillis() + 60*1000;
         int i = 0;
         while (System.currentTimeMillis() < end){
             File newFile = new File(new File(testPath()), System.currentTimeMillis()+"");
@@ -32,79 +33,43 @@ public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
             System.out.println(newFile.toString());
             Thread.sleep(1000);
             assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
-            System.out.println(i+": OK");
             i++;
         }
     }
 
     @Test
-    public void testCreateFileEverySecondForHour() throws Exception {
-        MockEndpoint watchAll = getMockEndpoint("mock:watchCreate");
-
-        Long end = System.currentTimeMillis() + 60*60*1000;
-        int i = 0;
-        while (System.currentTimeMillis() < end){
-            File newFile = new File(new File(testPath()), System.currentTimeMillis()+"");
-            if (!newFile.createNewFile()){
-                throw new IllegalStateException("Cannot create file "+newFile.toString());
-            }
-            System.out.println(newFile.toString());
-            Thread.sleep(1000);
-            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
-            System.out.println(i+": OK");
-            i++;
-        }
-    }
-
-    @Test
-    public void testCreateFileForHour() throws Exception {
+    public void testCreateFileForMinute() throws Exception {
         context.stopRoute("watchCreate"); //Stop this route to prevent out of memory caused by full mock endpoint
-        Long end = System.currentTimeMillis() + 60*60*1000;
-        Long i = 0L;
+        Long end = System.currentTimeMillis() + 60*1000;
+        Long created = 0L;
+        Long deleted = 0L;
         while (System.currentTimeMillis() < end){
             File newFile = new File(new File(testPath()), System.currentTimeMillis()+UUID.randomUUID().toString());
-            if (!newFile.createNewFile()){
-                throw new IllegalStateException("Cannot create file "+newFile.toString());
+            if (newFile.createNewFile()){
+                created++;
             }
-            Thread.sleep(5);
-            i++;
-            newFile.delete();
-            Thread.sleep(5);
+
+            if (newFile.delete()){
+                deleted++;
+            };
         }
+
         Thread.sleep(10000);
-        Assert.assertEquals(i, counterCreate.getCount());
-        Assert.assertEquals(i, counterDelete.getCount());
+        Assert.assertEquals(created, counterCreate.getCount());
+        Assert.assertEquals(deleted, counterDelete.getCount());
     }
 
-    @Test
-    public void testCreateFileEveryTenMinutesForHour() throws Exception {
-        MockEndpoint watchAll = getMockEndpoint("mock:watchCreate");
-
-        Long end = System.currentTimeMillis() + 60*60*1000;
-        int i = 0;
-        while (System.currentTimeMillis() < end){
-            File newFile = new File(new File(testPath()), System.currentTimeMillis()+"");
-            if (!newFile.createNewFile()){
-                throw new IllegalStateException("Cannot create file "+newFile.toString());
-            }
-            System.out.println(newFile.toString());
-            Thread.sleep(600000);
-            assertFileEvent(newFile.getName(), Nio2EventEnum.ENTRY_CREATE, watchAll.getExchanges().get(i));
-            System.out.println(i+": OK");
-            i++;
-        }
-    }
 
     static class Counter implements Processor{
-        Long count = 0L;
+        AtomicLong count = new AtomicLong();
         @Override
         public void process(Exchange exchange) throws Exception {
-            count++;
+            count.incrementAndGet();
             //System.out.println(exchange.getIn().getBody());
         }
 
         public Long getCount() {
-            return count;
+            return count.get();
         }
     }
 

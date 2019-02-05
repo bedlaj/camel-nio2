@@ -8,20 +8,26 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.*;
 
 public class Nio2ComponentTestBase extends CamelTestSupport {
 
-    private static final String TEST_PATH = new File("src/test/resources/testDir/").getAbsolutePath();
+    //private static final String TEST_PATH = new File("src/test/resources/testDir/").getAbsolutePath();
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Override
     protected void doPreSetup() throws Exception {
         super.doPostSetup();
-        new File(testPath()).mkdirs();
         cleanTestDir(new File(testPath()));
+        new File(testPath()).mkdirs();
+
     }
 
     @Override
@@ -50,8 +56,8 @@ public class Nio2ComponentTestBase extends CamelTestSupport {
         }
     }
 
-    protected String testPath(){
-        return Paths.get(TEST_PATH, getClass().getSimpleName() + "_"+getTestName().getMethodName()).toString();
+    protected String testPath() {
+            return folder.getRoot().getAbsolutePath() + folder.getRoot().toPath().getFileSystem().getSeparator();
     }
 
 
@@ -61,7 +67,7 @@ public class Nio2ComponentTestBase extends CamelTestSupport {
     }
 
     static boolean isWindows(){
-        //WatchService behaves differently on Windows (Emits both MODIFY and DELETE where file deleted)
+        //WatchService behaves differently on Windows (Emits both MODIFY and DELETE when file deleted)
         //see https://stackoverflow.com/questions/33753561/java-nio-watch-service-created-both-entry-create-and-entry-modify-when-a-new
         return SystemUtils.IS_OS_WINDOWS;
     }

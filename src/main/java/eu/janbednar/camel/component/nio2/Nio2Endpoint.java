@@ -11,6 +11,7 @@ import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 
+import java.nio.file.WatchKey;
 import java.util.*;
 
 /**
@@ -32,6 +33,13 @@ public class Nio2Endpoint extends DefaultEndpoint implements MultipleConsumersSu
     @UriParam(description="Auto create directory if does not exists", defaultValue = "true")
     private boolean autoCreate = true;
 
+    @UriParam(description="", defaultValue = "1")
+    private int concurrentConsumers = 1;
+
+    private WatchKey watchKey = null;
+
+    Nio2Consumer consumer = null;
+
     public Nio2Endpoint() {
     }
 
@@ -52,9 +60,11 @@ public class Nio2Endpoint extends DefaultEndpoint implements MultipleConsumersSu
         throw new UnsupportedOperationException("This component does not support producer");
     }
 
+    @Override
     public Consumer createConsumer(Processor processor) throws Exception {
         return new Nio2Consumer(this, processor);
     }
+
 
     public boolean isSingleton() {
         return true;
@@ -100,6 +110,20 @@ public class Nio2Endpoint extends DefaultEndpoint implements MultipleConsumersSu
     public void setAutoCreate(boolean autoCreate) {
         this.autoCreate = autoCreate;
     }
+
+    public int getConcurrentConsumers() {
+        return concurrentConsumers;
+    }
+
+    public void setConcurrentConsumers(int concurrentConsumers) {
+        this.concurrentConsumers = concurrentConsumers;
+    }
+
+    @Override
+    public Nio2Component getComponent() {
+        return (Nio2Component) super.getComponent();
+    }
+
 
     @Override
     public boolean isMultipleConsumersSupported() {

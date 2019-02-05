@@ -92,13 +92,12 @@ public class Nio2ComponentTest extends Nio2ComponentTestBase {
     public void testCreateBatch() throws Exception {
         MockEndpoint mock = getMockEndpoint("mock:watchAll");
 
-        for (int i = 0; i<100; i++){
+        for (int i = 0; i<1000; i++){
             File newFile = new File(new File(testPath()), i+"");
-            //Thread.sleep(1000);
             newFile.createNewFile();
         }
 
-        mock.expectedMessageCount(100);
+        mock.expectedMessageCount(1000);
         mock.expectedMessagesMatches(exchange -> exchange.getIn().getBody(FileEvent.class).getEventType() == Nio2EventEnum.ENTRY_CREATE);
         assertMockEndpointsSatisfied();
     }
