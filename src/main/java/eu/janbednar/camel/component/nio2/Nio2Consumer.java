@@ -113,7 +113,7 @@ public class Nio2Consumer extends DefaultConsumer {
             while (take() && isRunAllowed() && !isStoppingOrStopped() && !isSuspendingOrSuspended()) {
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     if (event.kind().equals(StandardWatchEventKinds.OVERFLOW)) {
-                        log.warn("OVERFLOW occurred");
+                        log.warn("OVERFLOW occurred. Consider increasing of option 'concurrentConsumers'");
                         continue;
                     }
                     eventQueue.offer(event);

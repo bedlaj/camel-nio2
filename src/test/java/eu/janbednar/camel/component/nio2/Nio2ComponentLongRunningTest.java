@@ -14,7 +14,7 @@ import java.io.File;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Category(LongRunningTests.class)
+//@Category(LongRunningTests.class)
 public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
     private Counter counterCreate = new Counter();
     private Counter counterDelete = new Counter();
@@ -56,7 +56,12 @@ public class Nio2ComponentLongRunningTest extends Nio2ComponentTestBase {
         }
 
 
-        Thread.sleep(10000);
+        long maxWaitTime = 120000;
+
+        end = System.currentTimeMillis() + maxWaitTime;
+        while (System.currentTimeMillis() < end && !created.equals(counterCreate.getCount()) && !deleted.equals(counterDelete.getCount())){
+            Thread.sleep(500);
+        }
         Assert.assertEquals(created, counterCreate.getCount());
         Assert.assertEquals(deleted, counterDelete.getCount());
     }
