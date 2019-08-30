@@ -1,6 +1,8 @@
-# Camel NIO.2 component
+# This is archived version, which will not be updated. This functionality is now part of Apache Camel as [file-watch component](https://camel.apache.org/components/latest/file-watch-component.html)
 
-[![Build Status](https://travis-ci.org/bedlaj/camel-nio2.svg?branch=master)](https://travis-ci.org/bedlaj/camel-nio2)
+--------------------
+
+# Camel NIO.2 component
 
 # Description
 This component uses Java-7 NIO.2 to watch directory changes. Please see [WatchService JavaDoc](https://docs.oracle.com/javase/8/docs/api/java/nio/file/WatchService.html), specially section "Platform dependencies" Before using this component.
